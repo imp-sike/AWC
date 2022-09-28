@@ -1,0 +1,4 @@
+*.keystore
+build/
+demo.apk
+android/AndroidManifest.xml

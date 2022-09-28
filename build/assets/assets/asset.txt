@@ -1,0 +1,3 @@
+I am Sulav Parajuli 
+and this text is loaded
+from assets
