@@ -43,7 +43,8 @@
         "stdexcept": "c",
         "streambuf": "c",
         "cinttypes": "c",
-        "typeinfo": "c"
+        "typeinfo": "c",
+        "cnfgandroid.h": "c"
     },
     "C_Cpp.errorSquiggles": "Disabled"
 }
