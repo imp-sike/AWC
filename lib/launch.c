@@ -1,17 +1,36 @@
 #include "framework.c"
 // #include "physac.h"
 
+enum GameState
+{
+    MENU,
+    GAME,
+    GAME_OVER,
+    SHARE,
+    ABOUT
+};
+
+int CURRENT_GAME_STATE = GAME;
+
 // basic global properties that may be required later
+// Enemy Class
+struct Enemy
+{
+    short currentXPosition;
+};
+
 short screenx, screeny;
 short finalscreenx, finalscreeny;
 bool jumping = false;
-char *text = "Button Not Clicked";
+char score[15] = "SCORE-0";
 image *backgroud1;
 image *rocks1;
 image *rocks2;
 image *ground;
 image *char0;
 image *rocket;
+
+// current enemy in scenes
 
 // runAnimation arrays
 image *runAnimation[10];
@@ -21,21 +40,33 @@ image *runAnimation0;
 image *jumpAnimation[10];
 image *jumpAnimation0;
 
+// enemy arrays
+image *enemies[8];
+image *enemies0;
+
+int scorePoint = 0;
+
+// all enemy
+// struct Enemy *allEnemy[8];
+short currentXPositionOfEnemy[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+
 // global player coordinate
 short playerPositionXmin;
 short playerPositionYmin;
 short playerPositionXmax;
 short playerPositionYmax;
 short playerPositionYmintemp;
-const short playerMaxJumpSingle = 200;
+const short playerMaxJumpSingle = 500;
 const short playerSingleJumpStepping = playerMaxJumpSingle / 5;
-
 
 // Event Handlers
 void onClick()
 {
-    text = "Presses";
-    jumping = !jumping;
+    if (!jumping)
+    {
+        // text = "Presses";
+        jumping = !jumping;
+    }
 }
 
 void init_jump_animations()
@@ -126,6 +157,42 @@ void init_run_animations()
     runAnimation[9] = runAnimation0;
 }
 
+void init_enemies()
+{
+
+    enemies0 = loadimagefromapk("enemy/grass3.png");
+    enemies0->tex = CNFGTexImage(enemies0->rdimg, enemies0->w, enemies0->h);
+    enemies[0] = enemies0;
+
+    enemies0 = loadimagefromapk("enemy/rectangle1.png");
+    enemies0->tex = CNFGTexImage(enemies0->rdimg, enemies0->w, enemies0->h);
+    enemies[1] = enemies0;
+
+    enemies0 = loadimagefromapk("enemy/rocks.png");
+    enemies0->tex = CNFGTexImage(enemies0->rdimg, enemies0->w, enemies0->h);
+    enemies[2] = enemies0;
+
+    enemies0 = loadimagefromapk("enemy/rocks2.png");
+    enemies0->tex = CNFGTexImage(enemies0->rdimg, enemies0->w, enemies0->h);
+    enemies[3] = enemies0;
+
+    enemies0 = loadimagefromapk("enemy/rocks3.png");
+    enemies0->tex = CNFGTexImage(enemies0->rdimg, enemies0->w, enemies0->h);
+    enemies[4] = enemies0;
+
+    enemies0 = loadimagefromapk("enemy/trees1.png");
+    enemies0->tex = CNFGTexImage(enemies0->rdimg, enemies0->w, enemies0->h);
+    enemies[5] = enemies0;
+
+    enemies0 = loadimagefromapk("enemy/trees2.png");
+    enemies0->tex = CNFGTexImage(enemies0->rdimg, enemies0->w, enemies0->h);
+    enemies[6] = enemies0;
+
+    enemies0 = loadimagefromapk("enemy/trees3.png");
+    enemies0->tex = CNFGTexImage(enemies0->rdimg, enemies0->w, enemies0->h);
+    enemies[7] = enemies0;
+}
+
 void initialize_assets()
 {
 
@@ -149,6 +216,7 @@ void initialize_assets()
 
     init_run_animations();
     init_jump_animations();
+    init_enemies();
 }
 
 // The function `init` is called at the starting of the game
@@ -174,8 +242,20 @@ void HandleResume()
 }
 
 double EventTime;
+double EventTimeEnemySpawn;
 int itemp = 0;
 int jtemp = 0;
+int enemytemp = 0;
+short screenxdecrementfactor = 0;
+
+void spawnRandomEnemy()
+{
+    // creates a enemy
+    // struct Enemy *enemy = (Enemy *)calloc(sizeof(Enemy));
+    // int randomtextureIndex = rand() % 8;
+
+    // RenderImage(enemies[randomtextureIndex]->tex, enemy->currentXPosition, enemy->currentYPosition, 100, 100);
+}
 
 // 117 * 334
 // Typical Game Loop, Physics actions can be done here
@@ -186,54 +266,101 @@ void gameloop()
     RenderImage(backgroud1->tex, 0, 0, screenx, screeny);
     RenderImage(rocks1->tex, 0, screeny * 0.05, screenx, screeny);
     RenderImage(rocks2->tex, 0, screeny * 0.2, screenx, screeny);
-    // RenderImage(backgroud1->tex, 0, 0, screenx, screeny);
-    // Button(onClick,rocket,text, screenx * 0.85, screeny * 0.7, 150, 150);
-
-    ImageButton(onClick, rocket, 0.85 * finalscreenx, 0.7 * finalscreeny, 170, 170); // edit
-
     RenderImage(ground->tex, 0, 0.95 * screeny, screenx, screeny);
-    // if(itemp == 0) RenderImage(runAnimation[0]->tex, screenx * 0.5, 0.785 * screeny, 120, 180);
 
-    if (jumping)
+    if (CURRENT_GAME_STATE == GAME)
     {
-        double Now2 = OGGetAbsoluteTime();
-        if (Now2 > EventTime)
-        {
 
-            jtemp++;
-            playerPositionYmin -= playerSingleJumpStepping;
-            if(jtemp == 4) playerPositionYmin += playerSingleJumpStepping;
-            if (jtemp > 9)
+        // RenderImage(backgroud1->tex, 0, 0, screenx, screeny);
+        // Button(onClick,rocket,text, screenx * 0.85, screeny * 0.7, 150, 150);
+
+        ImageButton(onClick, rocket, 0.85 * finalscreenx, 0.7 * finalscreeny, 170, 170); // edit
+
+        // if(itemp == 0) RenderImage(runAnimation[0]->tex, screenx * 0.5, 0.785 * screeny, 120, 180);
+
+        if (jumping)
+        {
+            double Now2 = OGGetAbsoluteTime();
+            if (Now2 > EventTime)
             {
-                jtemp = 0;
-                jumping = false;
-                playerPositionYmin = playerPositionYmintemp;
+
+                jtemp++;
+                playerPositionYmin -= playerSingleJumpStepping;
+                if (jtemp == 4)
+                    playerPositionYmin += playerSingleJumpStepping;
+                if (jtemp > 9)
+                {
+                    jtemp = 0;
+                    jumping = false;
+                    playerPositionYmin = playerPositionYmintemp;
+                }
+                EventTime += 0.07;
             }
-            EventTime += 0.05;
-        }
 
-        RenderImage(jumpAnimation[jtemp]->tex, playerPositionXmin, playerPositionYmin, playerPositionXmax, playerPositionYmax);
-    }
-    else
-    {
-        // Not jumping
-        double Now = OGGetAbsoluteTime();
-        if (Now > EventTime)
+            RenderImage(jumpAnimation[jtemp]->tex, playerPositionXmin, playerPositionYmin, playerPositionXmax, playerPositionYmax);
+        }
+        else
         {
+            // Not jumping
+            double Now = OGGetAbsoluteTime();
+            if (Now > EventTime)
+            {
 
-            itemp++;
-            if (itemp > 9)
-                itemp = 0;
-            EventTime += 0.05;
+                itemp++;
+                if (itemp > 9)
+                    itemp = 0;
+                EventTime += 0.04;
+            }
+            RenderImage(runAnimation[itemp]->tex, playerPositionXmin, playerPositionYmin, playerPositionXmax, playerPositionYmax);
         }
-        RenderImage(runAnimation[itemp]->tex, playerPositionXmin, playerPositionYmin, playerPositionXmax, playerPositionYmax);
+
+        // spawnRandomEnemy();
+        double NowEnemySpawn = OGGetAbsoluteTime();
+        if (NowEnemySpawn > EventTimeEnemySpawn)
+        {
+            screenxdecrementfactor += 10;
+
+            if (screenx - screenxdecrementfactor <= -10)
+            {
+            //     scorePoint += 10;
+            //     sprintf(score, "SCORE-%d", scorePoint);
+                screenxdecrementfactor = 0;
+            }
+            EventTimeEnemySpawn += 0.02;
+        }
+        RenderImage(enemies[6]->tex, screenx - screenxdecrementfactor, playerPositionYmintemp, playerPositionXmax, playerPositionYmax);
+
+
+        // TODO Add collision detection  tomoroow
+        if((screenx - screenxdecrementfactor) > playerPositionXmin && (screenx - screenxdecrementfactor) < playerPositionXmax) {
+            scorePoint = "Collision!!!";
+        }
+        else if((screenx - screenxdecrementfactor + playerPositionXmax) < playerPositionXmax && (screenx - screenxdecrementfactor + playerPositionXmax) > playerPositionXmin) {
+            scorePoint = "Collision!!!";
+        }
+        
+
+
+        CNFGPenX = 100;
+        CNFGPenY = 100;
+        CNFGSetLineWidth(7);
+        CNFGDrawText(score, 10);
+    }
+    else if (CURRENT_GAME_STATE == GAME_OVER)
+    {
+        // game over screen
+        CNFGPenX = 100;
+        CNFGPenY = 100;
+        CNFGSetLineWidth(7);
+        CNFGDrawText("Game Over", 50);
     }
 }
 
 // Entry Point of the Game
 int main()
 {
-    EventTime = OGGetAbsoluteTime() + 0.05;
+    EventTime = OGGetAbsoluteTime() + 0.04;
+    EventTimeEnemySpawn = OGGetAbsoluteTime() + 0.05;
     run(init, gameloop);
     return 0;
 }
