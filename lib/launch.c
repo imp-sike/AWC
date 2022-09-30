@@ -10,7 +10,7 @@ enum GameState
     ABOUT
 };
 
-int CURRENT_GAME_STATE = GAME;
+int CURRENT_GAME_STATE = MENU;
 
 // basic global properties that may be required later
 // Enemy Class
@@ -29,6 +29,8 @@ image *rocks2;
 image *ground;
 image *char0;
 image *rocket;
+image *facebook;
+image *playstore;
 
 // current enemy in scenes
 
@@ -214,6 +216,14 @@ void initialize_assets()
     rocket = loadimagefromapk("rocket.png");
     rocket->tex = CNFGTexImage(rocket->rdimg, rocket->w, rocket->h);
 
+
+    facebook = loadimagefromapk("facebook.png");
+    facebook->tex = CNFGTexImage(facebook->rdimg, facebook->w, facebook->h);
+
+
+    playstore = loadimagefromapk("playstore.png");
+    playstore->tex = CNFGTexImage(playstore->rdimg, playstore->w, playstore->h);
+
     init_run_animations();
     init_jump_animations();
     init_enemies();
@@ -243,21 +253,16 @@ void HandleResume()
 
 double EventTime;
 double EventTimeEnemySpawn;
+double EventTimeBackground;
 int itemp = 0;
 int jtemp = 0;
 int enemytemp = 0;
 short screenxdecrementfactor = 0;
 
-void spawnRandomEnemy()
-{
-    // creates a enemy
-    // struct Enemy *enemy = (Enemy *)calloc(sizeof(Enemy));
-    // int randomtextureIndex = rand() % 8;
+#include "menu_screen.c"
+#include "about_screen.c"
+#include "share_screen.c"
 
-    // RenderImage(enemies[randomtextureIndex]->tex, enemy->currentXPosition, enemy->currentYPosition, 100, 100);
-}
-
-// 117 * 334
 // Typical Game Loop, Physics actions can be done here
 void gameloop()
 {
@@ -322,30 +327,30 @@ void gameloop()
 
             if (screenx - screenxdecrementfactor <= -10)
             {
-            //     scorePoint += 10;
-            //     sprintf(score, "SCORE-%d", scorePoint);
+                //     scorePoint += 10;
+                //     sprintf(score, "SCORE-%d", scorePoint);
                 screenxdecrementfactor = 0;
             }
             EventTimeEnemySpawn += 0.02;
         }
         RenderImage(enemies[6]->tex, screenx - screenxdecrementfactor, playerPositionYmintemp, playerPositionXmax, playerPositionYmax);
 
-
         // TODO Add collision detection  tomoroow
-        if((screenx - screenxdecrementfactor) > playerPositionXmin && (screenx - screenxdecrementfactor) < playerPositionXmax) {
+        if ((screenx - screenxdecrementfactor) > playerPositionXmin && (screenx - screenxdecrementfactor) < playerPositionXmax)
+        {
             scorePoint = "Collision!!!";
         }
-        else if((screenx - screenxdecrementfactor + playerPositionXmax) < playerPositionXmax && (screenx - screenxdecrementfactor + playerPositionXmax) > playerPositionXmin) {
+        else if ((screenx - screenxdecrementfactor + playerPositionXmax) < playerPositionXmax && (screenx - screenxdecrementfactor + playerPositionXmax) > playerPositionXmin)
+        {
             scorePoint = "Collision!!!";
         }
-        
-
 
         CNFGPenX = 100;
         CNFGPenY = 100;
         CNFGSetLineWidth(7);
         CNFGDrawText(score, 10);
     }
+
     else if (CURRENT_GAME_STATE == GAME_OVER)
     {
         // game over screen
@@ -354,6 +359,19 @@ void gameloop()
         CNFGSetLineWidth(7);
         CNFGDrawText("Game Over", 50);
     }
+
+    else if (CURRENT_GAME_STATE == MENU)
+    {
+        menu_screen();
+    }
+    else if (CURRENT_GAME_STATE == ABOUT)
+    {
+        about_screen();
+    }
+    else if (CURRENT_GAME_STATE == SHARE)
+    {
+        share_screen();
+    }
 }
 
 // Entry Point of the Game
@@ -361,6 +379,7 @@ int main()
 {
     EventTime = OGGetAbsoluteTime() + 0.04;
     EventTimeEnemySpawn = OGGetAbsoluteTime() + 0.05;
+    EventTimeBackground = OGGetAbsoluteTime() + 0.05;
     run(init, gameloop);
     return 0;
 }
