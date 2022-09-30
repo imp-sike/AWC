@@ -1,4 +1,12 @@
 {
+    "emeraldwalk.runonsave": {
+        "commands": [
+            {
+                "match": ".*",
+                "cmd": "echo 'I am ${env.USERNAME}.'"
+            }
+        ]
+    },
     "files.associations": {
         "array": "c",
         "atomic": "c",
