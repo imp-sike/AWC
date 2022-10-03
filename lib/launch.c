@@ -1,4 +1,6 @@
 #include "framework.c"
+// #include "sound.c"
+
 // #include "physac.h"
 
 enum GameState
@@ -7,11 +9,11 @@ enum GameState
     GAME,
     GAME_OVER,
     SHARE,
-    ABOUT
+    ABOUT,
+    PAUSE
 };
 
 int CURRENT_GAME_STATE = MENU;
-
 // basic global properties that may be required later
 // Enemy Class
 struct Enemy
@@ -31,6 +33,11 @@ image *char0;
 image *rocket;
 image *facebook;
 image *playstore;
+image *pauseImg;
+
+struct collisionObject *enemyObject;
+struct  collisionObject *playerObject;
+
 
 // current enemy in scenes
 
@@ -46,6 +53,14 @@ image *jumpAnimation0;
 image *enemies[8];
 image *enemies0;
 
+struct collisionObject
+{
+    short objectXmin;
+    short objectYmin;
+    short objectXmax;
+    short objectYmax;
+};
+
 int scorePoint = 0;
 
 // all enemy
@@ -58,18 +73,8 @@ short playerPositionYmin;
 short playerPositionXmax;
 short playerPositionYmax;
 short playerPositionYmintemp;
-const short playerMaxJumpSingle = 500;
-const short playerSingleJumpStepping = playerMaxJumpSingle / 5;
-
-// Event Handlers
-void onClick()
-{
-    if (!jumping)
-    {
-        // text = "Presses";
-        jumping = !jumping;
-    }
-}
+const short playerMaxJumpSingle = 800;
+const short playerSingleJumpStepping = playerMaxJumpSingle / 8;
 
 void init_jump_animations()
 {
@@ -162,37 +167,37 @@ void init_run_animations()
 void init_enemies()
 {
 
-    enemies0 = loadimagefromapk("enemy/grass3.png");
-    enemies0->tex = CNFGTexImage(enemies0->rdimg, enemies0->w, enemies0->h);
-    enemies[0] = enemies0;
+    // enemies0 = loadimagefromapk("enemy/grass3.png");
+    // enemies0->tex = CNFGTexImage(enemies0->rdimg, enemies0->w, enemies0->h);
+    // enemies[0] = enemies0;
 
-    enemies0 = loadimagefromapk("enemy/rectangle1.png");
-    enemies0->tex = CNFGTexImage(enemies0->rdimg, enemies0->w, enemies0->h);
-    enemies[1] = enemies0;
+    // enemies0 = loadimagefromapk("enemy/rectangle1.png");
+    // enemies0->tex = CNFGTexImage(enemies0->rdimg, enemies0->w, enemies0->h);
+    // enemies[1] = enemies0;
 
-    enemies0 = loadimagefromapk("enemy/rocks.png");
-    enemies0->tex = CNFGTexImage(enemies0->rdimg, enemies0->w, enemies0->h);
-    enemies[2] = enemies0;
+    // enemies0 = loadimagefromapk("enemy/rocks.png");
+    // enemies0->tex = CNFGTexImage(enemies0->rdimg, enemies0->w, enemies0->h);
+    // enemies[2] = enemies0;
 
-    enemies0 = loadimagefromapk("enemy/rocks2.png");
-    enemies0->tex = CNFGTexImage(enemies0->rdimg, enemies0->w, enemies0->h);
-    enemies[3] = enemies0;
+    // enemies0 = loadimagefromapk("enemy/rocks2.png");
+    // enemies0->tex = CNFGTexImage(enemies0->rdimg, enemies0->w, enemies0->h);
+    // enemies[3] = enemies0;
 
-    enemies0 = loadimagefromapk("enemy/rocks3.png");
-    enemies0->tex = CNFGTexImage(enemies0->rdimg, enemies0->w, enemies0->h);
-    enemies[4] = enemies0;
+    // enemies0 = loadimagefromapk("enemy/rocks3.png");
+    // enemies0->tex = CNFGTexImage(enemies0->rdimg, enemies0->w, enemies0->h);
+    // enemies[4] = enemies0;
 
-    enemies0 = loadimagefromapk("enemy/trees1.png");
-    enemies0->tex = CNFGTexImage(enemies0->rdimg, enemies0->w, enemies0->h);
-    enemies[5] = enemies0;
+    // enemies0 = loadimagefromapk("enemy/trees1.png");
+    // enemies0->tex = CNFGTexImage(enemies0->rdimg, enemies0->w, enemies0->h);
+    // enemies[5] = enemies0;
 
     enemies0 = loadimagefromapk("enemy/trees2.png");
     enemies0->tex = CNFGTexImage(enemies0->rdimg, enemies0->w, enemies0->h);
     enemies[6] = enemies0;
 
-    enemies0 = loadimagefromapk("enemy/trees3.png");
-    enemies0->tex = CNFGTexImage(enemies0->rdimg, enemies0->w, enemies0->h);
-    enemies[7] = enemies0;
+    // enemies0 = loadimagefromapk("enemy/trees3.png");
+    // enemies0->tex = CNFGTexImage(enemies0->rdimg, enemies0->w, enemies0->h);
+    // enemies[7] = enemies0;
 }
 
 void initialize_assets()
@@ -216,22 +221,60 @@ void initialize_assets()
     rocket = loadimagefromapk("rocket.png");
     rocket->tex = CNFGTexImage(rocket->rdimg, rocket->w, rocket->h);
 
-
     facebook = loadimagefromapk("facebook.png");
     facebook->tex = CNFGTexImage(facebook->rdimg, facebook->w, facebook->h);
 
-
     playstore = loadimagefromapk("playstore.png");
     playstore->tex = CNFGTexImage(playstore->rdimg, playstore->w, playstore->h);
+
+    pauseImg = loadimagefromapk("pause.png");
+    pauseImg->tex = CNFGTexImage(pauseImg->rdimg, pauseImg->w, pauseImg->h);
 
     init_run_animations();
     init_jump_animations();
     init_enemies();
 }
 
+double EventTime;
+double EventTimeEnemySpawn;
+double EventTimeBackground;
+double EventTimeParallalax;
+
+int itemp = 0;
+int jtemp = 0;
+int enemytemp = 0;
+int bakitemp = 0;
+short screenxdecrementfactor = 0;
+char *test = "Loading...";
+
+#include "player.c"
+#include "menu_screen.c"
+#include "about_screen.c"
+#include "share_screen.c"
+#include "game_screen.c"
+#include "game_over_screen.c"
+#include "render_parallalax_bg.c"
+#include "pause_screen.c"
+
+// Reload the assets when the app is resumed from background
+void HandleResume()
+{
+    suspended = 0;
+    initialize_assets();
+    // exit(0);
+}
+
+void HandleSuspend()
+{
+    exit(1);
+    suspended = 1;
+}
 // The function `init` is called at the starting of the game
 void init()
 {
+    playerObject = calloc(1,playerObject);
+    enemyObject = calloc(1,enemyObject);
+
     CNFGGetDimensions(&screenx, &screeny);
     finalscreenx = screenx;
     finalscreeny = screeny;
@@ -241,136 +284,50 @@ void init()
     playerPositionXmax = 120;
     playerPositionYmax = 180;
 
+    render_parallalax_bg_init();
+
     initialize_assets();
+
+    // init_sound();
 }
-
-// Reload the assets when the app is resumed from background
-void HandleResume()
-{
-    suspended = 0;
-    initialize_assets();
-}
-
-double EventTime;
-double EventTimeEnemySpawn;
-double EventTimeBackground;
-int itemp = 0;
-int jtemp = 0;
-int enemytemp = 0;
-short screenxdecrementfactor = 0;
-
-#include "menu_screen.c"
-#include "about_screen.c"
-#include "share_screen.c"
 
 // Typical Game Loop, Physics actions can be done here
 void gameloop()
 {
     CNFGBGColor = 0x000000ff;
     CNFGFlushRender();
-    RenderImage(backgroud1->tex, 0, 0, screenx, screeny);
-    RenderImage(rocks1->tex, 0, screeny * 0.05, screenx, screeny);
-    RenderImage(rocks2->tex, 0, screeny * 0.2, screenx, screeny);
-    RenderImage(ground->tex, 0, 0.95 * screeny, screenx, screeny);
+
+    render_parallalax_bg();
+    player();
 
     if (CURRENT_GAME_STATE == GAME)
     {
-
-        // RenderImage(backgroud1->tex, 0, 0, screenx, screeny);
-        // Button(onClick,rocket,text, screenx * 0.85, screeny * 0.7, 150, 150);
-
-        ImageButton(onClick, rocket, 0.85 * finalscreenx, 0.7 * finalscreeny, 170, 170); // edit
-
-        // if(itemp == 0) RenderImage(runAnimation[0]->tex, screenx * 0.5, 0.785 * screeny, 120, 180);
-
-        if (jumping)
-        {
-            double Now2 = OGGetAbsoluteTime();
-            if (Now2 > EventTime)
-            {
-
-                jtemp++;
-                playerPositionYmin -= playerSingleJumpStepping;
-                if (jtemp == 4)
-                    playerPositionYmin += playerSingleJumpStepping;
-                if (jtemp > 9)
-                {
-                    jtemp = 0;
-                    jumping = false;
-                    playerPositionYmin = playerPositionYmintemp;
-                }
-                EventTime += 0.07;
-            }
-
-            RenderImage(jumpAnimation[jtemp]->tex, playerPositionXmin, playerPositionYmin, playerPositionXmax, playerPositionYmax);
-        }
-        else
-        {
-            // Not jumping
-            double Now = OGGetAbsoluteTime();
-            if (Now > EventTime)
-            {
-
-                itemp++;
-                if (itemp > 9)
-                    itemp = 0;
-                EventTime += 0.04;
-            }
-            RenderImage(runAnimation[itemp]->tex, playerPositionXmin, playerPositionYmin, playerPositionXmax, playerPositionYmax);
-        }
-
-        // spawnRandomEnemy();
-        double NowEnemySpawn = OGGetAbsoluteTime();
-        if (NowEnemySpawn > EventTimeEnemySpawn)
-        {
-            screenxdecrementfactor += 10;
-
-            if (screenx - screenxdecrementfactor <= -10)
-            {
-                //     scorePoint += 10;
-                //     sprintf(score, "SCORE-%d", scorePoint);
-                screenxdecrementfactor = 0;
-            }
-            EventTimeEnemySpawn += 0.02;
-        }
-        RenderImage(enemies[6]->tex, screenx - screenxdecrementfactor, playerPositionYmintemp, playerPositionXmax, playerPositionYmax);
-
-        // TODO Add collision detection  tomoroow
-        if ((screenx - screenxdecrementfactor) > playerPositionXmin && (screenx - screenxdecrementfactor) < playerPositionXmax)
-        {
-            scorePoint = "Collision!!!";
-        }
-        else if ((screenx - screenxdecrementfactor + playerPositionXmax) < playerPositionXmax && (screenx - screenxdecrementfactor + playerPositionXmax) > playerPositionXmin)
-        {
-            scorePoint = "Collision!!!";
-        }
-
-        CNFGPenX = 100;
-        CNFGPenY = 100;
-        CNFGSetLineWidth(7);
-        CNFGDrawText(score, 10);
+        game_screen();
     }
 
     else if (CURRENT_GAME_STATE == GAME_OVER)
     {
-        // game over screen
-        CNFGPenX = 100;
-        CNFGPenY = 100;
-        CNFGSetLineWidth(7);
-        CNFGDrawText("Game Over", 50);
+        game_over_screen();
     }
 
     else if (CURRENT_GAME_STATE == MENU)
     {
         menu_screen();
     }
+
     else if (CURRENT_GAME_STATE == ABOUT)
     {
         about_screen();
     }
+
     else if (CURRENT_GAME_STATE == SHARE)
     {
         share_screen();
+    }
+
+    else if (CURRENT_GAME_STATE == PAUSE)
+    {
+        pause_screen();
     }
 }
 
@@ -379,7 +336,8 @@ int main()
 {
     EventTime = OGGetAbsoluteTime() + 0.04;
     EventTimeEnemySpawn = OGGetAbsoluteTime() + 0.05;
-    EventTimeBackground = OGGetAbsoluteTime() + 0.05;
+    EventTimeParallalax = OGGetAbsoluteTime() + 0.05;
+
     run(init, gameloop);
     return 0;
 }
