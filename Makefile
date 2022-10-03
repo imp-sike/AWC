@@ -11,7 +11,7 @@ APPNAME?=demo
 LABEL?=$(APPNAME)
 APKFILE ?= $(APPNAME).apk
 PACKAGENAME?=com.sulav.$(APPNAME)
-RAWDRAWANDROID?=./android
+RAWDRAWANDROID?=./giga
 RAWDRAWANDROIDSRCS=$(RAWDRAWANDROID)/android_native_app_glue.c
 SRC?=lib/launch.c
 
@@ -144,11 +144,11 @@ build/lib/x86_64/lib$(APPNAME).so : $(ANDROIDSRCS)
 
 
 
-build.apk : $(TARGETS) $(EXTRA_ASSETS_TRIGGER) android/AndroidManifest.xml
+build.apk : $(TARGETS) $(EXTRA_ASSETS_TRIGGER) giga/AndroidManifest.xml
 	mkdir -p build/assets
-	cp -r android/Sources/assets/* build/assets
+	cp -r giga/Sources/assets/* build/assets
 	rm -rf temp.apk
-	$(AAPT) package -f -F temp.apk -I $(ANDROIDSDK)/platforms/android-$(ANDROIDVERSION)/android.jar -M android/AndroidManifest.xml -S android/Sources/res -A build/assets -v --target-sdk-version $(ANDROIDTARGET)
+	$(AAPT) package -f -F temp.apk -I $(ANDROIDSDK)/platforms/android-$(ANDROIDVERSION)/android.jar -M giga/AndroidManifest.xml -S giga/Sources/res -A build/assets -v --target-sdk-version $(ANDROIDTARGET)
 	unzip -o temp.apk -d build
 	rm -rf build.apk
 	cd build && zip -D9r ../build.apk . && zip -D0r ../build.apk ./resources.arsc ./AndroidManifest.xml
@@ -161,16 +161,16 @@ build.apk : $(TARGETS) $(EXTRA_ASSETS_TRIGGER) android/AndroidManifest.xml
 	rm -rf build.apk
 	@ls -l $(APKFILE)
 
-manifest: android/AndroidManifest.xml
+manifest: giga/AndroidManifest.xml
 
 android/AndroidManifest.xml :
-	rm -rf android/AndroidManifest.xml
+	rm -rf giga/AndroidManifest.xml
 	PACKAGENAME=$(PACKAGENAME) \
 		ANDROIDVERSION=$(ANDROIDVERSION) \
 		ANDROIDTARGET=$(ANDROIDTARGET) \
 		APPNAME=$(APPNAME) \
 		LABEL=$(LABEL) envsubst '$$ANDROIDTARGET $$ANDROIDVERSION $$APPNAME $$PACKAGENAME $$LABEL' \
-		< android/AndroidManifest.xml.template > android/AndroidManifest.xml
+		< giga/AndroidManifest.xml.template > giga/AndroidManifest.xml
 
 
 uninstall : 
