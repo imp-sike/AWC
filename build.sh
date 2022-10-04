@@ -5,7 +5,7 @@ rm demo.apk.idsig
 
 
 echo "Copying assets..."
-cp -r ./assets/* ./android/Sources/assets
+cp -r ./assets/* ./giga/Sources/assets
 
 echo "Build Running..."
 make push run

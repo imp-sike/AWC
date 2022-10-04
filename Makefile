@@ -93,7 +93,7 @@ AAPT:=$(BUILD_TOOLS)/aapt
 
 # Which binaries to build? Just comment/uncomment these lines:
 TARGETS += build/lib/arm64-v8a/lib$(APPNAME).so
-TARGETS += build/lib/armeabi-v7a/lib$(APPNAME).so
+# TARGETS += build/lib/armeabi-v7a/lib$(APPNAME).so
 #TARGETS += build/lib/x86/lib$(APPNAME).so
 #TARGETS += build/lib/x86_64/lib$(APPNAME).so
 
@@ -147,6 +147,7 @@ build/lib/x86_64/lib$(APPNAME).so : $(ANDROIDSRCS)
 build.apk : $(TARGETS) $(EXTRA_ASSETS_TRIGGER) giga/AndroidManifest.xml
 	mkdir -p build/assets
 	cp -r giga/Sources/assets/* build/assets
+	cp giga/Sources/libbass.so build/lib/arm64-v8a 
 	rm -rf temp.apk
 	$(AAPT) package -f -F temp.apk -I $(ANDROIDSDK)/platforms/android-$(ANDROIDVERSION)/android.jar -M giga/AndroidManifest.xml -S giga/Sources/res -A build/assets -v --target-sdk-version $(ANDROIDTARGET)
 	unzip -o temp.apk -d build
