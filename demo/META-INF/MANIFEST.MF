@@ -98,7 +98,7 @@ Name: lib/arm64-v8a/libbass.so
 SHA-256-Digest: ly2cRZcjeqX9S72f5W7myd4OUUksNV3+TRcSX+u+0mQ=
 
 Name: lib/arm64-v8a/libdemo.so
-SHA-256-Digest: FYVctp4cxsH8kOvLwbTLYkaPh0k4B5p+TZ+J+E6vwmA=
+SHA-256-Digest: 1OVL41c9l5Fsm0A23qm0wXVzohqsXvYt0jRWQZqf6G8=
 
 Name: res/drawable/background_splash.xml
 SHA-256-Digest: eCzQ9f8ANexRYBEVR2P/WAKkA6+XoOlJ2sfXYJvuV0w=

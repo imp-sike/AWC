@@ -1,6 +1,6 @@
 Signature-Version: 1.0
 Created-By: 1.0 (Android)
-SHA-256-Digest-Manifest: ST81s+Jgtz9gmlBSvn60XbW42KubCNf1T2H9B19/VAw=
+SHA-256-Digest-Manifest: cG18hS42pWMDvS5nUPNVZbexOmaoy5Bzozb6uzfvSBI=
 X-Android-APK-Signed: 2, 3
 
 Name: AndroidManifest.xml
@@ -100,7 +100,7 @@ Name: lib/arm64-v8a/libbass.so
 SHA-256-Digest: a4e+EfCe5j+5vTb8M3i4uXbBwkHHmXKQQmRwGu6nGJE=
 
 Name: lib/arm64-v8a/libdemo.so
-SHA-256-Digest: GQsXtnHE7nZBN1CWw34W57OEDJOYW+wi4i77m127d6k=
+SHA-256-Digest: ABcO+rdV4rWxTu/ugQMol+5FuB7WQNgoAB2+xDi+DD8=
 
 Name: res/drawable/background_splash.xml
 SHA-256-Digest: C55PQ8Tr8qFYA3fdlL1zen5/m6yOFW1bBangsiTQeJ0=
