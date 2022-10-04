@@ -1,6 +1,7 @@
 #include "collision_detection.c"
 
 int collision = -1;
+float enemyTimeStampInc = 0.001;
 
 // Event Handlers
 void jumpPlayer()
@@ -54,7 +55,7 @@ void game_screen()
             sprintf(score, "SCORE-%d", scorePoint);
             screenxdecrementfactor = 0;
         }
-        EventTimeEnemySpawn += 0.01;
+        EventTimeEnemySpawn += enemyTimeStampInc;
     }
     RenderImage(enemies[6]->tex, screenx - screenxdecrementfactor, playerPositionYmintemp, playerPositionXmax, playerPositionYmax);
 
