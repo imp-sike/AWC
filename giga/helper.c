@@ -23,7 +23,9 @@ void Button(void onClick(), const char *title, int backgroundcolor, int textcolo
 			if (lastbuttony >= ymin && lastbuttony <= ymax)
 			{
 				HandleButton(lastbuttonx, lastbuttony, 0, 0);
+				PlaySound("button.wav", 0);
 				onClick();
+				// StopSound();
 			}
 		}
 	}
@@ -58,6 +60,8 @@ void ImageButton(void onClick(), image *img, short xmin, short ymin, short xmax,
 		{
 			if (lastbuttony >= ymin && lastbuttony <= ymax)
 			{
+				PlaySound("button.wav", 0);
+
 				HandleButton(lastbuttonx, lastbuttony, 0, 0);
 				onClick();
 			}

@@ -266,7 +266,7 @@ void HandleResume()
 
 void HandleSuspend()
 {
-    exit(1);
+    StopSound();
     suspended = 1;
 }
 // The function `init` is called at the starting of the game
@@ -287,6 +287,8 @@ void init()
     render_parallalax_bg_init();
 
     initialize_assets();
+
+    PlaySound("bg.mp3", 1);
 
     // init_sound();
 }

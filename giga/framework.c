@@ -14,13 +14,17 @@
 #include <android/log.h>
 #include <dlfcn.h>
 #include "CNFGAndroid.h"
-#include "bass.h"
+
 // #include <android/log.h>
 
 #define CNFG_IMPLEMENTATION
 #define CNFG3D
 
 #include "CNFG.h"
+
+// bass
+#define BASSDEF(f) (*f)
+#include "bass.h"
 
 // read image
 #include <stdint.h>
@@ -256,21 +260,22 @@ void HandleKey(int keycode, int bDown)
 	// 	AndroidDisplayKeyboard(keyboard_up);
 	// }
 
-	// if (keycode == 4)
-	// {
-	// 	exit(0);
-	// 	AndroidSendToBack(1);
-	// } // Handle Physical Back Button.
-	// if (keycode == 3)
-	// {
-	// 	exit(0);
-	// 	AndroidSendToBack(1);
-	// }
+	printf("The keycode is %d", keycode);
+	if (keycode == 4)
+	{
+		exit(0);
+		AndroidSendToBack(1);
+	} // Handle Physical Back Button.
+	else if (keycode == 3)
+	{
+		exit(0);
+		AndroidSendToBack(1);
+	}
 
 	// press any key, Gone boom
 
-	exit(0);
-	AndroidSendToBack(1);
+	// exit(0);
+	// AndroidSendToBack(1);
 }
 
 void HandleButton(int x, int y, int button, int bDown)
@@ -293,7 +298,7 @@ void HandleMotion(int x, int y, int mask)
 #define HMY 162
 short screenx, screeny;
 float Heightmap[HMX * HMY];
-void *g_libBASS;
+void *g_libBASS = NULL;
 
 extern struct android_app *gapp;
 
@@ -309,7 +314,7 @@ uint32_t randomtexturedata[256 * 256];
 
 HSTREAM curr_sample;
 
-void SoundPlay(const char *filename)
+void PlaySound(const char *filename, int loop)
 {
 	AAsset *asset = AAssetManager_open(gapp->activity->assetManager, filename, AASSET_MODE_BUFFER);
 	const void *data = AAsset_getBuffer(asset);
@@ -323,8 +328,15 @@ void SoundPlay(const char *filename)
 	BASS_SetConfig(BASS_CONFIG_NET_PLAYLIST, 1);
 	BASS_SetConfig(BASS_CONFIG_NET_TIMEOUT, 10000); // ms
 
-	HSTREAM hSample = BASS_StreamCreateFile(TRUE, m_EncodedBuffer, 0, m_EncodedBufferSize, BASS_SAMPLE_LOOP);
-
+	HSTREAM hSample;
+	if (loop == 1)
+	{
+		hSample = BASS_StreamCreateFile(TRUE, m_EncodedBuffer, 0, m_EncodedBufferSize, BASS_SAMPLE_LOOP);
+	}
+	else
+	{
+		hSample = BASS_StreamCreateFile(TRUE, m_EncodedBuffer, 0, m_EncodedBufferSize, BASS_SAMPLE_MONO);
+	}
 	curr_sample = hSample;
 
 	BASS_ChannelPlay(hSample, true);
@@ -347,7 +359,6 @@ int run(void init(), void gameloop())
 	CNFGBGColor = 0x000040ff;
 	CNFGSetupFullscreen("Test Bench", 0);
 	// CNFGSetup( "Test Bench", 0, 0 );
-	init();
 
 	SetupIMU();
 
@@ -362,7 +373,7 @@ int run(void init(), void gameloop())
 	{
 		// Logs("[libBASS] libbass.so loaded...");
 
-	#define LOADBASSFUNCTION(f) *((void **)&f) = dlsym(g_libBASS, #f)
+#define LOADBASSFUNCTION(f) *((void **)&f) = dlsym(g_libBASS, #f)
 		LOADBASSFUNCTION(BASS_SetConfig);
 		LOADBASSFUNCTION(BASS_GetConfig);
 		LOADBASSFUNCTION(BASS_GetVersion);
@@ -453,7 +464,7 @@ int run(void init(), void gameloop())
 			// Logs("[libBASS] libbass.so successfully initialized");
 		}
 
-		SoundPlay("cyberbird_theme1.mp3");
+		init();
 	}
 
 	while (1)
