@@ -14,6 +14,14 @@
 
 [VadimBoev/CyberBird_unfinished](https://github.com/VadimBoev/CyberBird_unfinished)
 
+## AUDIO CREDITS
+
+1. Background Music
+Run Amok by Kevin MacLeod | https://incompetech.com/
+Music promoted by https://www.chosic.com/free-music/all/
+Creative Commons CC BY 3.0
+https://creativecommons.org/licenses/by/3.0/
+
 ## Requirements
 - Android Studio 
 - NDK
@@ -28,7 +36,9 @@
 - [x] Open link in external apps
 - [X] Create complete game
 - [X] Add collision Detection
-- [ ] Add Sound in Game with libbass
+- [X] Add Sound in Game with libbass
+- [ ] Make Sound Stop when HOME button or NAVIGATE Button is pressed
+
 
  
 ## Folder Structure and Code Description

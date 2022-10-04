@@ -12,13 +12,19 @@
 #include <android_native_app_glue.h>
 #include <android/sensor.h>
 #include <android/log.h>
+#include <dlfcn.h>
 #include "CNFGAndroid.h"
+
 // #include <android/log.h>
 
 #define CNFG_IMPLEMENTATION
 #define CNFG3D
 
 #include "CNFG.h"
+
+// bass
+#define BASSDEF(f) (*f)
+#include "bass.h"
 
 // read image
 #include <stdint.h>
@@ -254,21 +260,22 @@ void HandleKey(int keycode, int bDown)
 	// 	AndroidDisplayKeyboard(keyboard_up);
 	// }
 
-	// if (keycode == 4)
-	// {
-	// 	exit(0);
-	// 	AndroidSendToBack(1);
-	// } // Handle Physical Back Button.
-	// if (keycode == 3)
-	// {
-	// 	exit(0);
-	// 	AndroidSendToBack(1);
-	// }
+	printf("The keycode is %d", keycode);
+	if (keycode == 4)
+	{
+		exit(0);
+		AndroidSendToBack(1);
+	} // Handle Physical Back Button.
+	else if (keycode == 3)
+	{
+		exit(0);
+		AndroidSendToBack(1);
+	}
 
 	// press any key, Gone boom
 
-		exit(0);
-		AndroidSendToBack(1);
+	// exit(0);
+	// AndroidSendToBack(1);
 }
 
 void HandleButton(int x, int y, int button, int bDown)
@@ -291,6 +298,7 @@ void HandleMotion(int x, int y, int mask)
 #define HMY 162
 short screenx, screeny;
 float Heightmap[HMX * HMY];
+void *g_libBASS = NULL;
 
 extern struct android_app *gapp;
 
@@ -304,6 +312,41 @@ volatile int suspended;
 
 uint32_t randomtexturedata[256 * 256];
 
+HSTREAM curr_sample;
+
+void PlaySound(const char *filename, int loop)
+{
+	AAsset *asset = AAssetManager_open(gapp->activity->assetManager, filename, AASSET_MODE_BUFFER);
+	const void *data = AAsset_getBuffer(asset);
+	size_t size = AAsset_getLength(asset);
+	unsigned char *m_EncodedBuffer = (unsigned char *)malloc(size);
+	memcpy(m_EncodedBuffer, data, size);
+	size_t m_EncodedBufferSize = size;
+	AAsset_close(asset);
+
+	BASS_SetConfig(BASS_CONFIG_GVOL_STREAM, 10000);
+	BASS_SetConfig(BASS_CONFIG_NET_PLAYLIST, 1);
+	BASS_SetConfig(BASS_CONFIG_NET_TIMEOUT, 10000); // ms
+
+	HSTREAM hSample;
+	if (loop == 1)
+	{
+		hSample = BASS_StreamCreateFile(TRUE, m_EncodedBuffer, 0, m_EncodedBufferSize, BASS_SAMPLE_LOOP);
+	}
+	else
+	{
+		hSample = BASS_StreamCreateFile(TRUE, m_EncodedBuffer, 0, m_EncodedBufferSize, BASS_SAMPLE_MONO);
+	}
+	curr_sample = hSample;
+
+	BASS_ChannelPlay(hSample, true);
+}
+
+void StopSound()
+{
+	BASS_StreamFree(curr_sample);
+}
+
 #include "helper.c"
 
 int run(void init(), void gameloop())
@@ -316,9 +359,113 @@ int run(void init(), void gameloop())
 	CNFGBGColor = 0x000040ff;
 	CNFGSetupFullscreen("Test Bench", 0);
 	// CNFGSetup( "Test Bench", 0, 0 );
-	init();
 
 	SetupIMU();
+
+	g_libBASS = dlopen("libbass.so", RTLD_NOW | RTLD_GLOBAL);
+	if (g_libBASS == NULL)
+	{
+		// Logs("[libBASS] Error loading libbass.so");
+		// Logs("Error: %s\n", dlerror());
+		return -1;
+	}
+	else
+	{
+		// Logs("[libBASS] libbass.so loaded...");
+
+#define LOADBASSFUNCTION(f) *((void **)&f) = dlsym(g_libBASS, #f)
+		LOADBASSFUNCTION(BASS_SetConfig);
+		LOADBASSFUNCTION(BASS_GetConfig);
+		LOADBASSFUNCTION(BASS_GetVersion);
+		LOADBASSFUNCTION(BASS_ErrorGetCode);
+		LOADBASSFUNCTION(BASS_Init);
+		LOADBASSFUNCTION(BASS_SetVolume);
+		LOADBASSFUNCTION(BASS_GetVolume);
+		LOADBASSFUNCTION(BASS_SetDevice);
+		LOADBASSFUNCTION(BASS_GetDevice);
+		LOADBASSFUNCTION(BASS_GetDeviceInfo);
+		LOADBASSFUNCTION(BASS_Free);
+		LOADBASSFUNCTION(BASS_GetInfo);
+		LOADBASSFUNCTION(BASS_Update);
+		LOADBASSFUNCTION(BASS_GetCPU);
+		LOADBASSFUNCTION(BASS_Start);
+		LOADBASSFUNCTION(BASS_Stop);
+		LOADBASSFUNCTION(BASS_Pause);
+		LOADBASSFUNCTION(BASS_PluginLoad);
+		LOADBASSFUNCTION(BASS_PluginFree);
+		LOADBASSFUNCTION(BASS_PluginGetInfo);
+		LOADBASSFUNCTION(BASS_Set3DFactors);
+		LOADBASSFUNCTION(BASS_Get3DFactors);
+		LOADBASSFUNCTION(BASS_Set3DPosition);
+		LOADBASSFUNCTION(BASS_Get3DPosition);
+		LOADBASSFUNCTION(BASS_Apply3D);
+		LOADBASSFUNCTION(BASS_MusicLoad);
+		LOADBASSFUNCTION(BASS_MusicFree);
+		LOADBASSFUNCTION(BASS_SampleLoad);
+		LOADBASSFUNCTION(BASS_SampleCreate);
+		LOADBASSFUNCTION(BASS_SampleFree);
+		LOADBASSFUNCTION(BASS_SampleGetInfo);
+		LOADBASSFUNCTION(BASS_SampleSetInfo);
+		LOADBASSFUNCTION(BASS_SampleGetChannel);
+		LOADBASSFUNCTION(BASS_SampleStop);
+		LOADBASSFUNCTION(BASS_StreamCreate);
+		LOADBASSFUNCTION(BASS_StreamCreateFile);
+		LOADBASSFUNCTION(BASS_StreamCreateURL);
+		LOADBASSFUNCTION(BASS_StreamCreateFileUser);
+		LOADBASSFUNCTION(BASS_StreamFree);
+		LOADBASSFUNCTION(BASS_StreamGetFilePosition);
+		LOADBASSFUNCTION(BASS_RecordInit);
+		LOADBASSFUNCTION(BASS_RecordSetDevice);
+		LOADBASSFUNCTION(BASS_RecordFree);
+		LOADBASSFUNCTION(BASS_RecordGetInfo);
+		LOADBASSFUNCTION(BASS_RecordGetInputName);
+		LOADBASSFUNCTION(BASS_RecordSetInput);
+		LOADBASSFUNCTION(BASS_RecordGetInput);
+		LOADBASSFUNCTION(BASS_RecordStart);
+		LOADBASSFUNCTION(BASS_ChannelBytes2Seconds);
+		LOADBASSFUNCTION(BASS_ChannelSeconds2Bytes);
+		LOADBASSFUNCTION(BASS_ChannelGetDevice);
+		LOADBASSFUNCTION(BASS_ChannelSetDevice);
+		LOADBASSFUNCTION(BASS_ChannelIsActive);
+		LOADBASSFUNCTION(BASS_ChannelGetInfo);
+		LOADBASSFUNCTION(BASS_ChannelGetTags);
+		LOADBASSFUNCTION(BASS_ChannelPlay);
+		LOADBASSFUNCTION(BASS_ChannelStop);
+		LOADBASSFUNCTION(BASS_ChannelPause);
+		LOADBASSFUNCTION(BASS_ChannelIsSliding);
+		LOADBASSFUNCTION(BASS_ChannelSet3DAttributes);
+		LOADBASSFUNCTION(BASS_ChannelGet3DAttributes);
+		LOADBASSFUNCTION(BASS_ChannelSet3DPosition);
+		LOADBASSFUNCTION(BASS_ChannelGet3DPosition);
+		LOADBASSFUNCTION(BASS_ChannelGetLength);
+		LOADBASSFUNCTION(BASS_ChannelSetPosition);
+		LOADBASSFUNCTION(BASS_ChannelGetPosition);
+		LOADBASSFUNCTION(BASS_ChannelGetLevel);
+		LOADBASSFUNCTION(BASS_ChannelGetData);
+		LOADBASSFUNCTION(BASS_ChannelSetSync);
+		LOADBASSFUNCTION(BASS_ChannelRemoveSync);
+		LOADBASSFUNCTION(BASS_ChannelSetDSP);
+		LOADBASSFUNCTION(BASS_ChannelRemoveDSP);
+		LOADBASSFUNCTION(BASS_ChannelSetLink);
+		LOADBASSFUNCTION(BASS_ChannelRemoveLink);
+		LOADBASSFUNCTION(BASS_ChannelSetFX);
+		LOADBASSFUNCTION(BASS_ChannelRemoveFX);
+		LOADBASSFUNCTION(BASS_FXSetParameters);
+		LOADBASSFUNCTION(BASS_FXGetParameters);
+
+		// Logs("[libBASS] loading settings..");
+
+		if (BASS_Init(-1, 44100, 0, 0, NULL) != true)
+		{
+			// Logs("[libBASS] libbass.so is not initialized, error: %i", BASS_ErrorGetCode());
+		}
+		else
+		{
+			// Logs("[libBASS] libbass.so successfully initialized");
+		}
+
+		init();
+	}
 
 	while (1)
 	{

@@ -31,7 +31,6 @@ void game_screen()
     playerObject->objectXmax = playerPositionXmin + playerPositionXmax;
     playerObject->objectYmax = playerPositionYmin + playerPositionYmax;
 
-
     if (jumping)
         RenderImage(jumpAnimation[jtemp]->tex, playerPositionXmin, playerPositionYmin, playerPositionXmax, playerPositionYmax);
     else
@@ -64,6 +63,8 @@ void game_screen()
     {
         // donot know why rendering is off in axis
         // so only SECOND_POINT_COLLISOON works
+        PlaySound("dead.wav", 0);
+
         CURRENT_GAME_STATE = GAME_OVER;
     }
     // sprintf(score, "COLLIDE= %d", scorePoint);
